@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -246,6 +250,52 @@ private fun NikaApp() {
 }
 
 @Composable
+private fun NikaAvatar(size: androidx.compose.ui.unit.Dp) {
+    Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val hair = Color(0xFF2878D8)
+        val lightHair = Color(0xFF72B8FF)
+        val skin = Color(0xFFFFDCCB)
+        val eye = Color(0xFF245AAB)
+
+        // Soft circular backdrop
+        drawCircle(
+            brush = Brush.linearGradient(listOf(Color(0xFFBDE1FF), Color(0xFF5D96E8))),
+            radius = w * 0.5f
+        )
+        // Long blue hair behind the face
+        drawOval(hair, Offset(w * 0.17f, h * 0.18f), Size(w * 0.66f, h * 0.76f))
+        drawOval(lightHair, Offset(w * 0.16f, h * 0.30f), Size(w * 0.18f, h * 0.57f))
+        drawOval(lightHair, Offset(w * 0.66f, h * 0.30f), Size(w * 0.18f, h * 0.57f))
+        // Face
+        drawOval(skin, Offset(w * 0.27f, h * 0.23f), Size(w * 0.46f, h * 0.55f))
+        // Blue fringe
+        val fringe = Path().apply {
+            moveTo(w * 0.22f, h * 0.43f)
+            quadraticTo(w * 0.20f, h * 0.05f, w * 0.53f, h * 0.12f)
+            quadraticTo(w * 0.82f, h * 0.13f, w * 0.79f, h * 0.43f)
+            quadraticTo(w * 0.67f, h * 0.32f, w * 0.58f, h * 0.38f)
+            quadraticTo(w * 0.45f, h * 0.46f, w * 0.38f, h * 0.35f)
+            quadraticTo(w * 0.30f, h * 0.32f, w * 0.22f, h * 0.43f)
+            close()
+        }
+        drawPath(fringe, hair)
+        // Bright anime-style eyes and highlights
+        drawOval(eye, Offset(w * 0.36f, h * 0.48f), Size(w * 0.075f, h * 0.13f))
+        drawOval(eye, Offset(w * 0.57f, h * 0.48f), Size(w * 0.075f, h * 0.13f))
+        drawCircle(Color.White, w * 0.018f, Offset(w * 0.395f, h * 0.51f))
+        drawCircle(Color.White, w * 0.018f, Offset(w * 0.605f, h * 0.51f))
+        // Small friendly smile
+        val smile = Path().apply {
+            moveTo(w * 0.44f, h * 0.67f)
+            quadraticTo(w * 0.50f, h * 0.72f, w * 0.56f, h * 0.67f)
+        }
+        drawPath(smile, Color(0xFFB86F78), style = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.018f))
+    }
+}
+
+@Composable
 private fun Header() {
     Surface(
         color = Color.White.copy(alpha = 0.94f),
@@ -257,17 +307,7 @@ private fun Header() {
             modifier = Modifier.padding(horizontal = 15.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .background(
-                        Brush.linearGradient(listOf(Color(0xFF8CC8FF), Color(0xFF477DD0))),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("N", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-            }
+            NikaAvatar(size = 54.dp)
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                 Text("NIKA AI", color = DeepBlue, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
                 Text("دستیار هوشمند فارسی", color = Color(0xFF71809A), fontSize = 11.sp)
@@ -292,15 +332,7 @@ private fun MessageBubble(line: ChatLine, onSpeak: () -> Unit) {
         verticalAlignment = Alignment.Bottom
     ) {
         if (!line.fromUser) {
-            Box(
-                Modifier.size(27.dp).background(
-                    Brush.linearGradient(listOf(Color(0xFF8CC8FF), Color(0xFF477DD0))),
-                    CircleShape
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("N", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            }
+            NikaAvatar(size = 27.dp)
             Spacer(Modifier.width(7.dp))
         }
         Surface(
