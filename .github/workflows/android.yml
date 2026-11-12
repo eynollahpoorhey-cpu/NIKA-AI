@@ -14,6 +14,7 @@ jobs:
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      NIKA_HAS_RELEASE_SIGNING: ${{ secrets.NIKA_KEYSTORE_BASE64 != '' && secrets.NIKA_KEYSTORE_PASSWORD != '' && secrets.NIKA_KEY_ALIAS != '' && secrets.NIKA_KEY_PASSWORD != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +49,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Prepare protected release signing key
-        if: ${{ secrets.NIKA_KEYSTORE_BASE64 != '' && secrets.NIKA_KEYSTORE_PASSWORD != '' && secrets.NIKA_KEY_ALIAS != '' && secrets.NIKA_KEY_PASSWORD != '' }}
+        if: ${{ env.NIKA_HAS_RELEASE_SIGNING == 'true' }}
         env:
           NIKA_KEYSTORE_BASE64: ${{ secrets.NIKA_KEYSTORE_BASE64 }}
           NIKA_KEYSTORE_PASSWORD: ${{ secrets.NIKA_KEYSTORE_PASSWORD }}
@@ -61,7 +62,7 @@ jobs:
           echo "NIKA_KEY_ALIAS=$NIKA_KEY_ALIAS" >> "$GITHUB_ENV"
           echo "NIKA_KEY_PASSWORD=$NIKA_KEY_PASSWORD" >> "$GITHUB_ENV"
       - name: Build signed release APK
-        if: ${{ env.NIKA_KEYSTORE_PATH != '' }}
+        if: ${{ env.NIKA_HAS_RELEASE_SIGNING == 'true' }}
         run: gradle --no-daemon assembleRelease
       - name: Upload signed release APK
         if: ${{ env.NIKA_KEYSTORE_PATH != '' }}
