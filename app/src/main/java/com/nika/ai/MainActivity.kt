@@ -46,6 +46,7 @@ private fun NikaApp() {
         )
     }
     var draft by remember { mutableStateOf("") }
+    var speechRate by remember { mutableFloatStateOf(1.0f) }
     val context = LocalContext.current
     var speechEngine by remember { mutableStateOf<TextToSpeech?>(null) }
     DisposableEffect(context) {
@@ -110,6 +111,7 @@ private fun NikaApp() {
                 ) {
                     items(messages) { line ->
                         MessageBubble(line) {
+                            speechEngine?.setSpeechRate(speechRate)
                             speechEngine?.speak(line.text, TextToSpeech.QUEUE_FLUSH, null, "nika_reply")
                         }
                     }
@@ -158,8 +160,37 @@ private fun NikaApp() {
                     }
                 }
                 Spacer(Modifier.height(9.dp))
+                Surface(
+                    color = Color.White.copy(alpha = 0.92f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(horizontal = 13.dp, vertical = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("سرعت صدای نیکا", color = DeepBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                when {
+                                    speechRate < 0.95f -> "آهسته"
+                                    speechRate > 1.05f -> "تند"
+                                    else -> "معمولی"
+                                },
+                                color = Color(0xFF71809A),
+                                fontSize = 11.sp
+                            )
+                        }
+                        Slider(
+                            value = speechRate,
+                            onValueChange = { speechRate = it },
+                            valueRange = 0.75f..1.35f,
+                            steps = 5,
+                            modifier = Modifier.height(30.dp)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(9.dp))
                 Text(
-                    "هوش مصنوعی، صدا و ساخت تصویر هنوز فعال نشده‌اند.",
+                    "پخش صدا به پشتیبانی موتور گفتار فارسی گوشی بستگی دارد. هوش مصنوعی و ساخت تصویر هنوز فعال نشده‌اند.",
                     modifier = Modifier.fillMaxWidth(),
                     color = Color(0xFF7C8AA2),
                     fontSize = 10.sp,
