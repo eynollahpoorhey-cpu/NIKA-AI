@@ -1,10 +1,13 @@
 package com.nika.ai
 
 import android.os.Bundle
+import android.content.Context
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import java.util.Locale
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
@@ -48,10 +51,30 @@ private val Ink = Color(0xFF233657)
 
 @Composable
 private fun NikaApp() {
+    val preferences = remember {
+        context.getSharedPreferences("nika_preferences", Context.MODE_PRIVATE)
+    }
+    var saveHistory by remember {
+        mutableStateOf(preferences.getBoolean("save_chat_history", false))
+    }
     val messages = remember {
-        mutableStateListOf(
-            ChatLine("سلام! من نیکا هستم 💙\nخوش اومدی! فعلاً در نسخه‌ی اولیه‌ام و هنوز به موتور هوش مصنوعی وصل نیستم.", false)
-        )
+        mutableStateListOf<ChatLine>().apply {
+            if (saveHistory) addAll(loadSavedMessages(context))
+            if (isEmpty()) add(ChatLine("سلام! من نیکا هستم 💙\nخوش اومدی! فعلاً در نسخه‌ی اولیه‌ام و هنوز به موتور هوش مصنوعی وصل نیستم.", false))
+        }
+    }
+    LaunchedEffect(saveHistory, messages.size, messages.lastOrNull()?.text) {
+        preferences.edit().apply {
+            if (saveHistory) {
+                val history = JSONArray()
+                messages.takeLast(100).forEach { line ->
+                    history.put(JSONObject().put("text", line.text).put("fromUser", line.fromUser))
+                }
+                putString("chat_history", history.toString())
+            } else {
+                remove("chat_history")
+            }
+        }.apply()
     }
     var draft by remember { mutableStateOf("") }
     var speechRate by remember { mutableFloatStateOf(1.0f) }
@@ -246,7 +269,31 @@ private fun NikaApp() {
                         )
                     }
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(8.dp))
+                Surface(
+                    color = Color.White.copy(alpha = 0.92f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 13.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text("ذخیره‌ی گفتگو روی این گوشی", color = DeepBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text("اختیاری است؛ پیش‌فرض خاموش و با امکان پاک‌کردن", color = Color(0xFF7C8AA2), fontSize = 10.sp)
+                        }
+                        Switch(
+                            checked = saveHistory,
+                            onCheckedChange = { enabled ->
+                                saveHistory = enabled
+                                preferences.edit().putBoolean("save_chat_history", enabled).apply()
+                                if (!enabled) preferences.edit().remove("chat_history").apply()
+                            }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
                 Text(
                     "پخش صدا به پشتیبانی موتور گفتار فارسی گوشی بستگی دارد. هوش مصنوعی و ساخت تصویر هنوز فعال نشده‌اند.",
                     modifier = Modifier.fillMaxWidth(),
@@ -257,6 +304,19 @@ private fun NikaApp() {
             }
         }
     }
+}
+
+private fun loadSavedMessages(context: Context): List<ChatLine> {
+    return runCatching {
+        val raw = context.getSharedPreferences("nika_preferences", Context.MODE_PRIVATE)
+            .getString("chat_history", null) ?: return emptyList()
+        val json = JSONArray(raw)
+        (0 until json.length()).mapNotNull { index ->
+            val item = json.optJSONObject(index) ?: return@mapNotNull null
+            val text = item.optString("text")
+            if (text.isBlank()) null else ChatLine(text, item.optBoolean("fromUser"))
+        }.takeLast(100)
+    }.getOrDefault(emptyList())
 }
 
 @Composable
