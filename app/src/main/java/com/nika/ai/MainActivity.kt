@@ -49,10 +49,7 @@ private fun NikaApp() {
         if (message.isNotEmpty()) {
             messages.add(ChatLine(message, true))
             messages.add(
-                ChatLine(
-                    "پیامت رو دریافت کردم 💙\nبرای پاسخ واقعی باید سرویس هوش مصنوعی امن به برنامه وصل بشه؛ این قابلیت هنوز در حال توسعه است.",
-                    false
-                )
+                ChatLine(demoReply(message), false)
             )
             draft = ""
         }
@@ -240,5 +237,24 @@ private fun SuggestionChip(label: String, modifier: Modifier = Modifier, onClick
     ) {
         Text(label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
             color = Color(0xFF42699C), fontSize = 11.sp, textAlign = TextAlign.Center)
+    }
+}
+
+
+private fun demoReply(message: String): String {
+    val text = message.trim().lowercase()
+    return when {
+        text.contains("سلام") || text == "درود" ->
+            "سلام! 💙\\nخوشحالم که اومدی. دوست داری درباره‌ی چی گپ بزنیم؟"
+        text.contains("خودت") || text.contains("معرفی") ->
+            "من نیکا هستم؛ یک دستیار فارسی در حال توسعه با ظاهر آبی و سفید. 🌸\\nفعلاً نسخه‌ی نمایشی‌ام و هنوز هوش مصنوعی واقعی، صدا و ساخت تصویر به من وصل نشده."
+        text.contains("چه کار") || text.contains("قابلیت") || text.contains("کمک") ->
+            "هدفم اینه که بتونم به پرسش‌ها جواب بدم، گفت‌وگوی صوتی داشته باشم و در ساخت تصویر کمک کنم. ✨\\nاین قابلیت‌ها هنوز در حال ساخته شدن هستند."
+        text.contains("ممنون") || text.contains("مرسی") ->
+            "خواهش می‌کنم! 💙"
+        text.contains("اسمت") || text.contains("نامت") ->
+            "اسمم نیکاست! 💙"
+        else ->
+            "پیامت رو دریافت کردم 💙\\nاین نسخه هنوز پاسخ‌گوی هوشمند نیست. برای جواب واقعی باید سرویس هوش مصنوعی از طریق یک اتصال امن به برنامه وصل بشه."
     }
 }
