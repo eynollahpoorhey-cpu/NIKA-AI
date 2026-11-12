@@ -1,6 +1,8 @@
 package com.nika.ai
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -12,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +46,21 @@ private fun NikaApp() {
         )
     }
     var draft by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    var speechEngine by remember { mutableStateOf<TextToSpeech?>(null) }
+    DisposableEffect(context) {
+        val engine = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                speechEngine?.language = Locale.forLanguageTag("fa-IR")
+            }
+        }
+        speechEngine = engine
+        onDispose {
+            engine.stop()
+            engine.shutdown()
+            speechEngine = null
+        }
+    }
 
     fun sendMessage(value: String) {
         val message = value.trim()
@@ -90,7 +108,11 @@ private fun NikaApp() {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(vertical = 6.dp)
                 ) {
-                    items(messages) { line -> MessageBubble(line) }
+                    items(messages) { line ->
+                        MessageBubble(line) {
+                            speechEngine?.speak(line.text, TextToSpeech.QUEUE_FLUSH, null, "nika_reply")
+                        }
+                    }
                 }
 
                 if (messages.size == 1) {
@@ -188,7 +210,7 @@ private fun Header() {
 }
 
 @Composable
-private fun MessageBubble(line: ChatLine) {
+private fun MessageBubble(line: ChatLine, onSpeak: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (line.fromUser) Arrangement.End else Arrangement.Start,
@@ -216,13 +238,19 @@ private fun MessageBubble(line: ChatLine) {
             shadowElevation = 1.dp,
             modifier = Modifier.widthIn(max = 300.dp)
         ) {
-            Text(
-                line.text,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                color = Ink,
-                fontSize = 14.sp,
-                lineHeight = 22.sp
-            )
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                Text(
+                    line.text,
+                    color = Ink,
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp
+                )
+                if (!line.fromUser) {
+                    TextButton(onClick = onSpeak, contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)) {
+                        Text("🔊 پخش پاسخ", color = Color(0xFF477DD0), fontSize = 11.sp)
+                    }
+                }
+            }
         }
     }
 }
