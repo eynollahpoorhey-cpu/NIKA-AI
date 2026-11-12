@@ -40,10 +40,34 @@ jobs:
           "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
-      - name: Upload APK
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: NIKA-AI-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Prepare protected release signing key
+        if: ${{ secrets.NIKA_KEYSTORE_BASE64 != '' && secrets.NIKA_KEYSTORE_PASSWORD != '' && secrets.NIKA_KEY_ALIAS != '' && secrets.NIKA_KEY_PASSWORD != '' }}
+        env:
+          NIKA_KEYSTORE_BASE64: ${{ secrets.NIKA_KEYSTORE_BASE64 }}
+          NIKA_KEYSTORE_PASSWORD: ${{ secrets.NIKA_KEYSTORE_PASSWORD }}
+          NIKA_KEY_ALIAS: ${{ secrets.NIKA_KEY_ALIAS }}
+          NIKA_KEY_PASSWORD: ${{ secrets.NIKA_KEY_PASSWORD }}
+        run: |
+          echo "$NIKA_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nika-release.jks"
+          echo "NIKA_KEYSTORE_PATH=$RUNNER_TEMP/nika-release.jks" >> "$GITHUB_ENV"
+          echo "NIKA_KEYSTORE_PASSWORD=$NIKA_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "NIKA_KEY_ALIAS=$NIKA_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "NIKA_KEY_PASSWORD=$NIKA_KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build signed release APK
+        if: ${{ env.NIKA_KEYSTORE_PATH != '' }}
+        run: gradle --no-daemon assembleRelease
+      - name: Upload signed release APK
+        if: ${{ env.NIKA_KEYSTORE_PATH != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: NIKA-AI-signed-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
