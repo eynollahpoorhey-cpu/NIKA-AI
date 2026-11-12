@@ -124,6 +124,16 @@ private fun NikaApp() {
                         Text("نسخه‌ی آزمایشی", color = Color(0xFF416A9C), fontSize = 10.sp,
                             modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp))
                     }
+                    Spacer(Modifier.weight(1f))
+                    TextButton(
+                        onClick = {
+                            messages.clear()
+                            messages.add(ChatLine("گفت‌وگو پاک شد. 💙\nهر وقت خواستی می‌تونیم از نو شروع کنیم.", false))
+                        },
+                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 2.dp)
+                    ) {
+                        Text("پاک‌کردن گفتگو", color = Color(0xFF587AA8), fontSize = 11.sp)
+                    }
                 }
                 Spacer(Modifier.height(10.dp))
 
