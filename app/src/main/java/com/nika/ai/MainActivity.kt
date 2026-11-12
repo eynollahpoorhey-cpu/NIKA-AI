@@ -51,6 +51,7 @@ private val Ink = Color(0xFF233657)
 
 @Composable
 private fun NikaApp() {
+    val context = LocalContext.current
     val preferences = remember {
         context.getSharedPreferences("nika_preferences", Context.MODE_PRIVATE)
     }
@@ -78,7 +79,6 @@ private fun NikaApp() {
     }
     var draft by remember { mutableStateOf("") }
     var speechRate by remember { mutableFloatStateOf(1.0f) }
-    val context = LocalContext.current
     var speechEngine by remember { mutableStateOf<TextToSpeech?>(null) }
     LaunchedEffect(speechEngine) {
         speechEngine?.language = Locale.forLanguageTag("fa-IR")
