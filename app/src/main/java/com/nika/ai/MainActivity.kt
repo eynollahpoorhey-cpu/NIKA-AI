@@ -1,8 +1,12 @@
 package com.nika.ai
 
 import android.os.Bundle
+import android.content.Intent
+import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import java.util.Locale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -71,6 +75,17 @@ private fun NikaApp() {
                 ChatLine(demoReply(message), false)
             )
             draft = ""
+        }
+    }
+
+    val voiceInputLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val spokenText = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spokenText.isNullOrBlank()) sendMessage(spokenText)
         }
     }
 
@@ -147,15 +162,40 @@ private fun NikaApp() {
                             )
                         )
                         Spacer(Modifier.height(8.dp))
-                        Button(
-                            onClick = { sendMessage(draft) },
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
-                            shape = RoundedCornerShape(15.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("ارسال پیام", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                            Spacer(Modifier.width(8.dp))
-                            Text("➤", fontSize = 17.sp)
+                            OutlinedButton(
+                                onClick = {
+                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fa-IR")
+                                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "fa-IR")
+                                        putExtra(RecognizerIntent.EXTRA_PROMPT, "با نیکا صحبت کن")
+                                    }
+                                    try {
+                                        voiceInputLauncher.launch(intent)
+                                    } catch (_: Exception) {
+                                        messages.add(ChatLine("تشخیص گفتار روی این دستگاه در دسترس نیست.", false))
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(15.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = DeepBlue)
+                            ) {
+                                Text("🎙 گفتار", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            }
+                            Button(
+                                onClick = { sendMessage(draft) },
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                                shape = RoundedCornerShape(15.dp)
+                            ) {
+                                Text("ارسال پیام", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Spacer(Modifier.width(6.dp))
+                                Text("➤", fontSize = 17.sp)
+                            }
                         }
                     }
                 }
