@@ -35,7 +35,7 @@ export default {
       return json({ error: "Message must contain 1–5000 characters" }, 400);
     }
 
-    const model = env.GEMINI_MODEL || "gemini-3.8-flash";
+    const model = env.GEMINI_MODEL || "gemini-3.1-flash-lite";
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
 
