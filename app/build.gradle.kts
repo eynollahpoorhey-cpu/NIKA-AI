@@ -16,12 +16,12 @@ android {
     namespace = "com.nika.ai"
     compileSdk = 35
 
-    defaultConfig {
+    buildFeatures {\n        compose = true\n        buildConfig = true\n    }\n\n    val nikaApiBaseUrl = providers.gradleProperty("NIKA_API_BASE_URL").orElse("").get()\n\n    defaultConfig {
         applicationId = "com.nika.ai"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "0.1.0"\n        buildConfigField("String", "NIKA_API_BASE_URL", "\\\"$nikaApiBaseUrl\\\"")
     }
 
     signingConfigs {
@@ -60,5 +60,5 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.foundation:foundation")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")\n    debugImplementation("androidx.compose.ui:ui-tooling")
 }
