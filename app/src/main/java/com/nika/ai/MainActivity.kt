@@ -53,6 +53,10 @@ private fun NikaApp() {
     var speechRate by remember { mutableFloatStateOf(1.0f) }
     val context = LocalContext.current
     var speechEngine by remember { mutableStateOf<TextToSpeech?>(null) }
+    LaunchedEffect(speechEngine) {
+        speechEngine?.language = Locale.forLanguageTag("fa-IR")
+    }
+
     DisposableEffect(context) {
         val engine = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -344,16 +348,16 @@ private fun demoReply(message: String): String {
     val text = message.trim().lowercase()
     return when {
         text.contains("سلام") || text == "درود" ->
-            "سلام! 💙\\nخوشحالم که اومدی. دوست داری درباره‌ی چی گپ بزنیم؟"
+            "سلام! 💙\nخوشحالم که اومدی. دوست داری درباره‌ی چی گپ بزنیم؟"
         text.contains("خودت") || text.contains("معرفی") ->
-            "من نیکا هستم؛ یک دستیار فارسی در حال توسعه با ظاهر آبی و سفید. 🌸\\nفعلاً نسخه‌ی نمایشی‌ام و هنوز هوش مصنوعی واقعی، صدا و ساخت تصویر به من وصل نشده."
+            "من نیکا هستم؛ یک دستیار فارسی در حال توسعه با ظاهر آبی و سفید. 🌸\nفعلاً نسخه‌ی نمایشی‌ام و هنوز هوش مصنوعی واقعی، صدا و ساخت تصویر به من وصل نشده."
         text.contains("چه کار") || text.contains("قابلیت") || text.contains("کمک") ->
-            "هدفم اینه که بتونم به پرسش‌ها جواب بدم، گفت‌وگوی صوتی داشته باشم و در ساخت تصویر کمک کنم. ✨\\nاین قابلیت‌ها هنوز در حال ساخته شدن هستند."
+            "هدفم اینه که بتونم به پرسش‌ها جواب بدم، گفت‌وگوی صوتی داشته باشم و در ساخت تصویر کمک کنم. ✨\nاین قابلیت‌ها هنوز در حال ساخته شدن هستند."
         text.contains("ممنون") || text.contains("مرسی") ->
             "خواهش می‌کنم! 💙"
         text.contains("اسمت") || text.contains("نامت") ->
             "اسمم نیکاست! 💙"
         else ->
-            "پیامت رو دریافت کردم 💙\\nاین نسخه هنوز پاسخ‌گوی هوشمند نیست. برای جواب واقعی باید سرویس هوش مصنوعی از طریق یک اتصال امن به برنامه وصل بشه."
+            "پیامت رو دریافت کردم 💙\nاین نسخه هنوز پاسخ‌گوی هوشمند نیست. برای جواب واقعی باید سرویس هوش مصنوعی از طریق یک اتصال امن به برنامه وصل بشه."
     }
 }
